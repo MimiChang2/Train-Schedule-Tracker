@@ -16,7 +16,7 @@ var database = firebase.database();
 var train = "";
 var destination = "";
 var time = "";
-var frequency = 0;
+var frequency = "";
 
 
 $("#submitButton").on("click", function() {
@@ -41,10 +41,44 @@ $("#submitButton").on("click", function() {
 
 database.ref().on("child_added", function(snapshot) {
 
+    var firebaseTrain = snapshot.val();
+
+    // First Time (pushed back 1 year to make sure it comes before current time)
+    var timeConverted = moment(firebaseTrain.trainTime, "hh:mm").subtract(1, "years").format("hh:mm");
+    //timeConverted = moment(timeConverted).format("hh:mm");
+    console.log("Time Converted: " + timeConverted);
+
+
+    // Current Time
+    var currentTime = moment().format("hh:mm");
+    console.log("Current Time: " + currentTime);
+
+    // Difference between the times
+    var diffTime = moment().diff(moment(timeConverted), "minutes");
+    console.log("Diff Time: " + diffTime);
+
+    // Remaining Time
+    var remainder = diffTime % firebaseTrain.frequency;
+    console.log(remainder + "!");
+
+    // Minutes Until Train
+    var minTillTrain = firebaseTrain.frequency - remainder;
+    console.log("Min Til Train: " + minTillTrain);
+
+    // Next Train
+    var nextTrain = moment().add(minTillTrain, "minutes").format("hh:mm");
+    console.log("Arrival Time: " + moment(nextTrain).format("hh:mm"));
+
     $("#input").append(
         "<tr><td>" + snapshot.val().trainName + "</td>" +
         "<td>" + snapshot.val().destination + "</td>" +
-        "<td>" + snapshot.val().frequency + "</td></tr>"
+        // "<td>" + snapshot.val().trainTime + "</td>" +
+        "<td>" + snapshot.val().frequency + "</td>" +
+        "<td>" + nextTrain + "</td>" +
+        "<td>" + minTillTrain + "</td></tr>"
     );
+
+    // $("#input > tbody").append("<tr><td>" + firebaseTrain.trainName + "</td><td>" + firebaseTrain.destination + "</td><td>" +
+    // firebaseTrain.trainTime + "</td><td>" + firebaseTrain.frequency + "</td><td>" + nextTrain + "</td><td>" + minTillTrain + "</td></tr>");
 
 });
