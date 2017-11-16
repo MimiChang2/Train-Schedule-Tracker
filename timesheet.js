@@ -1,4 +1,5 @@
 /* global firebase */
+/* global moment */
 
 // Initialize Firebase
 var config = {
@@ -41,33 +42,34 @@ $("#submitButton").on("click", function() {
 
 database.ref().on("child_added", function(snapshot) {
 
-    var firebaseTrain = snapshot.val();
+    //var firebaseTrain = "snapshot.val().";
 
     // First Time (pushed back 1 year to make sure it comes before current time)
-    var timeConverted = moment(firebaseTrain.trainTime, "hh:mm").subtract(1, "years").format("hh:mm");
-    //timeConverted = moment(timeConverted).format("hh:mm");
+    var timeConverted = moment((snapshot.val().trainTime), "HH:mm").subtract(1, "years").format("HH:mm");
+    //timeConverted = moment(timeConverted).format("HH:mm");
     console.log("Time Converted: " + timeConverted);
 
 
+
     // Current Time
-    var currentTime = moment().format("hh:mm");
+    var currentTime = moment().format("HH:mm");
     console.log("Current Time: " + currentTime);
 
     // Difference between the times
-    var diffTime = moment().diff(moment(timeConverted), "minutes");
+    var diffTime = moment().diff(moment(timeConverted, "HH:mm"), "minutes");
     console.log("Diff Time: " + diffTime);
 
     // Remaining Time
-    var remainder = diffTime % firebaseTrain.frequency;
+    var remainder = diffTime % snapshot.val().frequency;
     console.log(remainder + "!");
 
-    // Minutes Until Train
-    var minTillTrain = firebaseTrain.frequency - remainder;
-    console.log("Min Til Train: " + minTillTrain);
+    // Minutes Away
+    var minutesAway = snapshot.val().frequency - remainder;
+    console.log("Minutes Away: " + minutesAway);
 
     // Next Train
-    var nextTrain = moment().add(minTillTrain, "minutes").format("hh:mm");
-    console.log("Arrival Time: " + moment(nextTrain).format("hh:mm"));
+    var nextTrain = moment().add(minutesAway, "minutes").format("HH:mm");
+    console.log("Next Arrival: " + moment(nextTrain).format("HH:mm"));
 
     $("#input").append(
         "<tr><td>" + snapshot.val().trainName + "</td>" +
@@ -75,7 +77,7 @@ database.ref().on("child_added", function(snapshot) {
         // "<td>" + snapshot.val().trainTime + "</td>" +
         "<td>" + snapshot.val().frequency + "</td>" +
         "<td>" + nextTrain + "</td>" +
-        "<td>" + minTillTrain + "</td></tr>"
+        "<td>" + minutesAway + "</td></tr>"
     );
 
     // $("#input > tbody").append("<tr><td>" + firebaseTrain.trainName + "</td><td>" + firebaseTrain.destination + "</td><td>" +
